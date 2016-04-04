@@ -52,6 +52,7 @@ collectd-protocol
 ## TODO
   * Improve handling of large numbers encoding which Javascript can't handle with precision (numbers greater than Number.MAX_SAFE_INTEGER). It's ok for now since we convert high precision numbers to low precision every time, which makes the least significant bits irrelevant.
   * Support async computations on message encoding (will break current encoding interface)
+  * Add logger support
 
 ## Release History
 
