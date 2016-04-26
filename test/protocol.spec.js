@@ -2,6 +2,7 @@
 
 var assert = require('chai').assert;
 
+var clone = require('lodash/clone');
 var decoder = require('../src/decoder');
 var encoder = require('../src/encoder');
 
@@ -383,7 +384,7 @@ describe('When decoding collectd\'s binary protocol', function () {
         });
     });
 
-    it('should allow to instantiate encoder and decoder with invalid configuration', function () {
+    it('should allow to instantiate encoder and decoder with invalid configuration', function (done) {
         var binaryData = encoder.encodeCustom(customTypeMock, { 0x0001: 'tags' });
 
         var result = decoder.decodeCustom(binaryData, { 0x0001: 'tags' });
@@ -393,6 +394,36 @@ describe('When decoding collectd\'s binary protocol', function () {
             decoded = data;
         }).on('end', function () {
             assert.deepEqual(decoded, customTypeMock);
+            done();
+        });
+    });
+
+    it('should decode unknown ds names to \'value\'', function (done) {
+        var unknownType = [{
+            "host": "localhost",
+            "time": 1445108447,
+            "interval": 10,
+            "plugin": "unknown",
+            "plugin_instance": "",
+            "type": "unknown",
+            "type_instance": "",
+            "values": [0.02, 0.21, 0.3],
+            "dstypes": ["gauge", "gauge", "gauge"],
+            "dsnames": ["unknownName1", "unknownName2", "unknownName3"]
+        }];
+
+        var expectedUnknownType = clone(unknownType[0]);
+        expectedUnknownType.dsnames = ["value", "value", "value"];
+
+        var binaryData = encoder.encode(unknownType);
+
+        var result = decoder.decode(binaryData);
+
+        var decoded;
+        result.on('data', function(data) {
+            decoded = data;
+        }).on('end', function () {
+            assert.deepEqual(decoded, [expectedUnknownType]);
             done();
         });
     });
