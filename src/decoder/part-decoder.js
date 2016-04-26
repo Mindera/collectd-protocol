@@ -174,7 +174,7 @@ function decodeValuesPart(buffer, offset, partLen, metric) {
                     }
                 }
 
-                var dsname = getDsnamesFromMetric(metric);
+                var dsname = getDsnamesFromMetric(metric, numberOfValues);
 
                 // Decode types
                 for (var i = 0; i < numberOfValues; i++) {
