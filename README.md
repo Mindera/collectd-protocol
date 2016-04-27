@@ -84,6 +84,9 @@ collectd-protocol
     
   * 0.3.1
     - Fix decoding of unknown values (not in types.db specification)
+    
+  * 0.3.2
+    - Fix decoding of a sequence of metrics from the same plugin
 
 [npm-url]: https://npmjs.org/package/collectd-protocol
 [npm-image]: https://badge.fury.io/js/collectd-protocol.svg
