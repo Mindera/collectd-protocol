@@ -6,6 +6,8 @@ var Q = require('q');
 
 var assign = require('lodash/assign');
 var isUndefined = require('lodash/isUndefined');
+var last = require('lodash/last');
+var clone = require('lodash/clone');
 
 var definition = require('./definition');
 var converters = require('./converters');
@@ -28,11 +30,21 @@ function addValuesToMetric(metric, values) {
 /**
  * Initializes a new metric before start decoding the metric.
  *
+ * @param host A decoded host
  * @param metricsArray The global metrics array
  * @returns {*} A new initialized metric
  */
-function initializeMetric(metricsArray) {
-    metricsArray.push({});
+function initializeMetric(host, metricsArray) {
+    var lastMetric = last(metricsArray);
+
+    var newMetric;
+    if (isUndefined(lastMetric)) {
+        newMetric = {};
+    } else {
+        newMetric = clone(lastMetric);
+    }
+    newMetric.host = host;
+    metricsArray.push(newMetric);
     return metricsArray[metricsArray.length - 1];
 }
 
@@ -42,6 +54,10 @@ function isValueType(header) {
 
 function isHostType(header) {
     return header.type === definition.TYPE_HOST;
+}
+
+function isTimeType(header) {
+    return header.type === definition.TYPE_TIME_HIRES || header.type === definition.TYPE_TIME;
 }
 
 /**
@@ -110,7 +126,7 @@ function decodePart(metrics, metric, header, buffer, offset) {
                         }
                         addToMetric(metric, typeName, decoded);
                     }
-                    deferred.resolve({metric: metric, metrics: metrics});
+                    deferred.resolve({metric: metric, metrics: metrics, decoded: decoded});
                 });
         }
     });
@@ -179,14 +195,19 @@ Decoder.prototype._read = function() {
                         return;
                     }
 
-                    if (isHostType(header)) {
-                        self._metric = initializeMetric(self._metrics);
+                    if (isTimeType(header)) {
+                        self._metric = initializeMetric(self._host, self._metrics);
                     }
 
                     decodePart(self._metrics, self._metric, header, self._buffer, self._offset)
-                        .then(function() {
+                        .then(function(decodedPart) {
                             self._offset += header.length;
                             self.push(self._metric);
+
+                            if (isHostType(header)) {
+                                self._host = decodedPart.decoded;
+                            }
+
                         }, function (err) {
                             self.emit('error', err);
                         });

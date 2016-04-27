@@ -6,7 +6,13 @@ var clone = require('lodash/clone');
 var decoder = require('../src/decoder');
 var encoder = require('../src/encoder');
 
+var path = require('path');
+var fs = require('fs');
+
 describe('When decoding collectd\'s binary protocol', function () {
+
+    var binaryMock = fs.readFileSync(path.resolve(__dirname, './collectd-mock-data.bin'));
+    var jsonMock = require(path.resolve(__dirname, './collectd-mock-data.json'));
 
     var defaultMock;
     var typesMock;
@@ -424,6 +430,18 @@ describe('When decoding collectd\'s binary protocol', function () {
             decoded = data;
         }).on('end', function () {
             assert.deepEqual(decoded, [expectedUnknownType]);
+            done();
+        });
+    });
+
+    it('should decode metrics with types from types.db specification', function(done) {
+        var result = decoder.decodeCustom(binaryMock, {0x0099: 'tags'});
+
+        var decoded;
+        result.on('data', function(data) {
+            decoded = data;
+        }).on('end', function () {
+            assert.deepEqual(decoded, jsonMock);
             done();
         });
     });
