@@ -53,6 +53,29 @@ collectd-protocol
   * Improve handling of large numbers encoding which Javascript can't handle with precision (numbers greater than Number.MAX_SAFE_INTEGER). It's ok for now since we convert high precision numbers to low precision every time, which makes the least significant bits irrelevant.
   * Support async computations on message encoding (will break current encoding interface)
   * Add logger support
+  
+## Notes
+
+### Grouped metrics of the same type
+
+  The spec is vague about the way metrics of the same type are sent over the wire. Consider the following representation of a sequence of metrics of the same type, where some of the parts are omitted on subsequent metrics:
+  
+    [--host-------------]
+    [--time_hr----------]
+    [--interval_hr------]
+    [--plugin-----------]
+    [--plugin_instance--]
+    [--type-------------]
+    [--type_instance----]
+    [--values-----------] <- ends
+    [--time_hr----------]
+    [--type_instance----]
+    [--values-----------] <- ends
+    [--time_hr----------]
+    [--type_instance----]
+    [--values-----------] <- ends
+
+  According to the network plugin source code, the value is always sent as the last part of a metric, so that's the way we're doing to understand when a metric ends. That's an assumption based on the current Collectd's network plugin implementation.
 
 ## Release History
 
@@ -87,6 +110,9 @@ collectd-protocol
     
   * 0.3.2
     - Fix decoding of a sequence of metrics from the same plugin
+    
+  * 0.3.3
+    - Fix decoding of a sequence of metrics from the same plugin (revisited)
 
 [npm-url]: https://npmjs.org/package/collectd-protocol
 [npm-image]: https://badge.fury.io/js/collectd-protocol.svg

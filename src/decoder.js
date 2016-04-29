@@ -6,7 +6,6 @@ var Q = require('q');
 
 var assign = require('lodash/assign');
 var isUndefined = require('lodash/isUndefined');
-var last = require('lodash/last');
 var clone = require('lodash/clone');
 
 var definition = require('./definition');
@@ -28,36 +27,19 @@ function addValuesToMetric(metric, values) {
 }
 
 /**
- * Initializes a new metric before start decoding the metric.
+ * Finishes a metric and then starts a new one.
  *
- * @param host A decoded host
+ * @param currentMetric The current metric being built
  * @param metricsArray The global metrics array
  * @returns {*} A new initialized metric
  */
-function initializeMetric(host, metricsArray) {
-    var lastMetric = last(metricsArray);
-
-    var newMetric;
-    if (isUndefined(lastMetric)) {
-        newMetric = {};
-    } else {
-        newMetric = clone(lastMetric);
-    }
-    newMetric.host = host;
-    metricsArray.push(newMetric);
-    return metricsArray[metricsArray.length - 1];
+function commitMetric(currentMetric, metricsArray) {
+    metricsArray.push(currentMetric);
+    return clone(currentMetric);
 }
 
 function isValueType(header) {
     return header.type === definition.TYPE_VALUES;
-}
-
-function isHostType(header) {
-    return header.type === definition.TYPE_HOST;
-}
-
-function isTimeType(header) {
-    return header.type === definition.TYPE_TIME_HIRES || header.type === definition.TYPE_TIME;
 }
 
 /**
@@ -195,19 +177,14 @@ Decoder.prototype._read = function() {
                         return;
                     }
 
-                    if (isTimeType(header)) {
-                        self._metric = initializeMetric(self._host, self._metrics);
-                    }
-
                     decodePart(self._metrics, self._metric, header, self._buffer, self._offset)
-                        .then(function(decodedPart) {
+                        .then(function() {
                             self._offset += header.length;
                             self.push(self._metric);
 
-                            if (isHostType(header)) {
-                                self._host = decodedPart.decoded;
+                            if (isValueType(header)) {
+                                self._metric = commitMetric(self._metric, self._metrics);
                             }
-
                         }, function (err) {
                             self.emit('error', err);
                         });
