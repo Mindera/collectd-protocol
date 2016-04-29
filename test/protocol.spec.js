@@ -48,16 +48,16 @@ describe('When decoding collectd\'s binary protocol', function () {
                 dsnames: ['rx', 'tx']
             },
             {
-                "host": "localhost",
-                "time": 1445108447,
-                "interval": 10,
-                "plugin": "load",
-                "plugin_instance": "",
-                "type": "load",
-                "type_instance": "",
-                "values": [0.02, 0.21, 0.3],
-                "dstypes": ["gauge", "gauge", "gauge"],
-                "dsnames": ["shortterm", "midterm", "longterm"]
+                'host': 'localhost',
+                'time': 1445108447,
+                'interval': 10,
+                'plugin': 'load',
+                'plugin_instance': '',
+                'type': 'load',
+                'type_instance': '',
+                'values': [0.02, 0.21, 0.3],
+                'dstypes': ['gauge', 'gauge', 'gauge'],
+                'dsnames': ['shortterm', 'midterm', 'longterm']
             }
         ];
 
@@ -76,6 +76,7 @@ describe('When decoding collectd\'s binary protocol', function () {
 
         customBinaryTypeMock = [{
             host: 'localhost',
+            tags: 'host=localhost,cluster=dev',
             time: 1455098772,
             interval: 10,
             plugin: 'GenericJMX',
@@ -84,8 +85,7 @@ describe('When decoding collectd\'s binary protocol', function () {
             type_instance: 'committed',
             dstypes: [ 'gauge' ],
             values: [ 152567808.92 ],
-            dsnames: [ 'value' ],
-            tags: 'host=localhost,cluster=dev'
+            dsnames: [ 'value' ]
         }];
     });
 
@@ -406,20 +406,20 @@ describe('When decoding collectd\'s binary protocol', function () {
 
     it('should decode unknown ds names to \'value\'', function (done) {
         var unknownType = [{
-            "host": "localhost",
-            "time": 1445108447,
-            "interval": 10,
-            "plugin": "unknown",
-            "plugin_instance": "",
-            "type": "unknown",
-            "type_instance": "",
-            "values": [0.02, 0.21, 0.3],
-            "dstypes": ["gauge", "gauge", "gauge"],
-            "dsnames": ["unknownName1", "unknownName2", "unknownName3"]
+            'host': 'localhost',
+            'time': 1445108447,
+            'interval': 10,
+            'plugin': 'unknown',
+            'plugin_instance': '',
+            'type': 'unknown',
+            'type_instance': '',
+            'values': [0.02, 0.21, 0.3],
+            'dstypes': ['gauge', 'gauge', 'gauge'],
+            'dsnames': ['unknownName1', 'unknownName2', 'unknownName3']
         }];
 
         var expectedUnknownType = clone(unknownType[0]);
-        expectedUnknownType.dsnames = ["value", "value", "value"];
+        expectedUnknownType.dsnames = ['value', 'value', 'value'];
 
         var binaryData = encoder.encode(unknownType);
 
